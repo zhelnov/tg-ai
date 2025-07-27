@@ -1,0 +1,19 @@
+{
+  "promptConfig": {
+    "123456": {
+      "name": "Friends Chat",
+      "prompt": "Act like helpful friend. Mimic the style of the conversation above.",
+      "respondToSelf": true,
+      "triggerWords": ["gpt"],
+      "disableLengthConstraint": true,
+      "markAIMessages": "[GPT]",
+      "responseProbability": 100,
+      "names": {
+        "1234": "John",
+        "1344": "Mark"
+      },
+      "memeProbability": 30
+    }
+  },
+  "keepConversationPrompts": ["123456"]
+}
