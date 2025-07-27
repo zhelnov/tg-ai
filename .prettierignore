@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Generated files
+*.d.ts
+*.js.map
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Session and context files
+.tgs
+contexts/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# IDE files
+.vscode/
+.idea/ 
