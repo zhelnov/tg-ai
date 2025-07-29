@@ -104,6 +104,7 @@ export class Processor {
           promptConfig?.memeProbability &&
           PromptBuilder.tossCoin(promptConfig.memeProbability)
         ) {
+          console.log('Generating meme');
           imageUrl = await this.gpt.generateImage(
             `Make meme based on this message either on English or without captions at all: "${actualMessage}"`
           );

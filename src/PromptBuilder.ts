@@ -44,54 +44,52 @@ export class PromptBuilder {
     const includeHistory = config.keepConversationPrompts(chatId);
 
     if (includeHistory && context.length) {
-      const mappedChatHistory: ChatCompletionMessageParam[] = context.map(
-        ctx => {
-          const name = names?.[ctx.from] ?? ctx.from ?? 'anonymous';
-          return {
-            role: name === 'assistant' ? 'assistant' : 'user',
-            content: ctx.message,
-            name: name.replace(/[\s<|\\/>\"]/g, '_'),
-          };
-        }
+      const mappedChatHistory: ChatCompletionMessageParam[] = context.map(ctx =>
+        this.mapContextMessage(ctx, imageData, names)
       );
 
       messages.push(...mappedChatHistory);
     }
 
-    // Add image data if present
-    if (imageData) {
-      console.log('Image received');
-      messages.push({
-        role: 'user',
-        content: [
-          {
-            type: 'image_url',
-            image_url: {
-              url: imageData,
-            },
-          },
-        ],
-      });
-    }
-
     messages.push({
       role: 'system',
-      content: prompt,
+      content: [
+        prompt,
+        this.mixinWithProbability(this.randomMixin(mixins), 30),
+      ].join(' '),
     });
 
-    // below prompting with context as text in one prompt instead of separate messages
-    // messages.push({
-    //   role: 'system',
-    //   content: [
-    //     // context.length
-    //     //   ? `Conversation history: "${context.map(ctx => `${names?.[ctx.from] ?? ctx.from ?? 'anonymous'}: ${ctx.message}`).join('\n')}"`
-    //     //   : '',
-    //     `Answer last message "${lastMessage}" keeping in mind conversation history`,
-    //     this.mixinWithProbability(this.randomMixin(mixins), 30),
-    //     prompt,
-    //   ].join(' '),
-    // });
-
     return messages;
+  }
+
+  private static mapContextMessage(
+    ctx: ChatMessage,
+    imageData?: string | null,
+    names?: Record<string, string>
+  ): ChatCompletionMessageParam {
+    const name = names?.[ctx.from] ?? ctx.from ?? 'anonymous';
+    const contextMessage: ChatCompletionMessageParam = {
+      role: name === 'assistant' ? 'assistant' : 'user',
+      content: ctx.message,
+      name: name.replace(/[\s<|\\/>\"]/g, '_'),
+    };
+
+    if (imageData) {
+      console.log('Image received');
+      contextMessage.content = [
+        {
+          type: 'text',
+          text: ctx.message,
+        },
+        {
+          type: 'image_url',
+          image_url: {
+            url: imageData,
+          },
+        },
+      ];
+    }
+
+    return contextMessage;
   }
 }
