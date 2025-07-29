@@ -65,14 +65,17 @@ export class Processor {
         fromSelf,
         await this.extractImageFromEvent(event)
       );
+
       if (replyText) {
         let imageUrl: string | undefined;
 
         if (
+          actualMessage &&
           promptConfig?.memeProbability &&
           PromptBuilder.tossCoin(promptConfig.memeProbability)
         ) {
           // TODO move prompt to config
+          console.log('Coin decided to generate meme');
           imageUrl = await this.gpt.generateImage(
             `Make meme about this message: "${actualMessage}"`
           );
@@ -197,10 +200,6 @@ export class Processor {
       return;
     }
 
-    if (!message) {
-      return;
-    }
-
     if (!promptConfig.respondToSelf && fromSelf) {
       console.log(`Ignoring own from ${chatId}`);
       return;
@@ -217,22 +216,25 @@ export class Processor {
 
     if (
       !promptConfig.disableLengthConstraint &&
+      message?.length &&
       (message.length < 5 || message.length > 1000)
     ) {
       return;
     }
 
-    if (message.includes('https://')) {
+    if (message?.includes('https://')) {
       console.log(`Ignoring link MSG ${message}`);
       return;
     }
 
-    this.context.addMessage(chatId, message, from);
+    if (message) {
+      this.context.addMessage(chatId, message, from);
+    }
 
     const context = this.context.getContext(chatId);
 
     console.log(
-      `MSG from ${from}: ${message.slice(0, 20).replace('\n/g', ' ')}... ${message.length}`
+      `MSG from ${from}: ${message?.slice(0, 20).replace('\n/g', ' ')}... ${message?.length} ${imageData ? 'WITH IMAGE' : ''}`
     );
 
     const prompt = PromptBuilder.getPrompt(chatId, message, context, imageData);

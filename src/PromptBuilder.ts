@@ -24,7 +24,7 @@ export class PromptBuilder {
 
   static getPrompt(
     chatId: string,
-    lastMessage: string,
+    lastMessage: string | undefined,
     context: ChatMessage[],
     imageData?: string | null
   ): ChatCompletionMessageParam[] {
@@ -38,6 +38,7 @@ export class PromptBuilder {
     }
 
     if (responseProbability && !this.tossCoin(responseProbability)) {
+      console.log('Coin decided to not respond');
       return [];
     }
 
@@ -45,10 +46,17 @@ export class PromptBuilder {
 
     if (includeHistory && context.length) {
       const mappedChatHistory: ChatCompletionMessageParam[] = context.map(ctx =>
-        this.mapContextMessage(ctx, imageData, names)
+        this.mapContextMessage(ctx, imageData, lastMessage, names)
       );
 
       messages.push(...mappedChatHistory);
+    }
+
+    if (!lastMessage && imageData) {
+      messages.push({
+        role: 'user',
+        content: [{ type: 'image_url', image_url: { url: imageData } }],
+      });
     }
 
     messages.push({
@@ -65,6 +73,7 @@ export class PromptBuilder {
   private static mapContextMessage(
     ctx: ChatMessage,
     imageData?: string | null,
+    lastMessage?: string | undefined,
     names?: Record<string, string>
   ): ChatCompletionMessageParam {
     const name = names?.[ctx.from] ?? ctx.from ?? 'anonymous';
@@ -74,7 +83,7 @@ export class PromptBuilder {
       name: name.replace(/[\s<|\\/>\"]/g, '_'),
     };
 
-    if (imageData) {
+    if (imageData && ctx.message === lastMessage) {
       console.log('Image received');
       contextMessage.content = [
         {

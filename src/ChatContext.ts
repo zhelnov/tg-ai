@@ -19,14 +19,14 @@ export class ChatContext {
   }
 
   addMessage(chatId: string, message: string, from: string = 'user'): void {
-    if (!message || !message.trim()) {
+    if (!message?.trim()) {
       return;
     }
 
     const messages = this.readContextFile(chatId);
 
     const newMessage: ChatMessage = {
-      message: message.trim(),
+      message: message,
       from,
       when: Date.now(),
     };
