@@ -12,7 +12,8 @@
         "1234": "John",
         "1344": "Mark"
       },
-      "memeProbability": 30
+      "memeProbability": 30,
+      "memePrompt": "joke around"
     }
   },
   "keepConversationPrompts": ["123456"]

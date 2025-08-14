@@ -12,6 +12,7 @@ const PromptConfigEntrySchema = z.object({
   markAIMessages: z.string().optional(),
   responseProbability: z.number().min(1).max(100).optional(),
   memeProbability: z.number().min(1).max(100).optional(),
+  memePrompt: z.string().optional(),
   names: z.record(z.string(), z.string()).optional(),
 });
 

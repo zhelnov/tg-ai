@@ -48,7 +48,7 @@ export class Processor {
     const fromSelf = this.isMyMessage(event);
 
     // for detecting new chats
-    // console.log(peerId, chatId, userId);
+    // console.dir({ peerId, chatId, userId }, { depth: null });
 
     if (peerId) {
       const chat = await this.client.getEntity(peerId);
@@ -67,19 +67,7 @@ export class Processor {
       );
 
       if (replyText) {
-        let imageUrl: string | undefined;
-
-        if (
-          actualMessage &&
-          promptConfig?.memeProbability &&
-          PromptBuilder.tossCoin(promptConfig.memeProbability)
-        ) {
-          // TODO move prompt to config
-          console.log('Coin decided to generate meme');
-          imageUrl = await this.gpt.generateImage(
-            `Make meme about this message: "${actualMessage}"`
-          );
-        }
+        const imageUrl = await this.sendMeme(actualMessage, promptConfig);
 
         await this.sendReply(peerId, replyText || '', 10, imageUrl);
       }
@@ -101,17 +89,7 @@ export class Processor {
       );
       if (replyText) {
         const target = new Api.PeerChat({ chatId });
-        let imageUrl: string | undefined;
-
-        if (
-          promptConfig?.memeProbability &&
-          PromptBuilder.tossCoin(promptConfig.memeProbability)
-        ) {
-          console.log('Generating meme');
-          imageUrl = await this.gpt.generateImage(
-            `Make meme based on this message either on English or without captions at all: "${actualMessage}"`
-          );
-        }
+        const imageUrl = await this.sendMeme(actualMessage, promptConfig);
 
         await this.sendReply(target, replyText || '', 0, imageUrl);
       }
@@ -131,13 +109,31 @@ export class Processor {
       );
       if (replyText) {
         const target = new Api.PeerUser({ userId });
-        await this.sendReply(target, replyText, 10);
+        const imageUrl = await this.sendMeme(
+          actualMessage,
+          this.config.getPromptConfig(userId)
+        );
+
+        await this.sendReply(target, replyText, 10, imageUrl);
       }
 
       return;
     }
 
     console.log('No peerId or chatId');
+  }
+
+  private async sendMeme(message: string | undefined, promptConfig: any) {
+    if (
+      message &&
+      promptConfig?.memeProbability &&
+      PromptBuilder.tossCoin(promptConfig.memeProbability)
+    ) {
+      console.log('Coin decided to generate meme');
+      return this.gpt.generateImage(
+        `${promptConfig.memePrompt ?? ''} "${message}"`
+      );
+    }
   }
 
   private isMyMessage(event: Api.UpdateNewMessage): boolean {
